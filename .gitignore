@@ -1,0 +1,18 @@
+# IDE
+.idea/
+*.iml
+
+# Secretos y entornos
+.env
+.env.*
+!.env.example
+
+# Builds y dependencias
+target/
+dist/
+node_modules/
+.angular/
+
+# Sistema
+.DS_Store
+Thumbs.db

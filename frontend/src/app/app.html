@@ -1,0 +1,60 @@
+<main class="pantalla">
+  <section class="tarjeta">
+    <p class="subtitulo">Gino se enojó</p>
+
+    <p class="contador" aria-live="polite">{{ total() }}</p>
+    <p class="veces">{{ total() === 1 ? 'vez' : 'veces' }}</p>
+
+    <p>Se enojo Gino?</p>
+
+    <!-- Contenedor que simula la base tridimensional del botón -->
+    <div class="boton-wrapper">
+      <button
+        class="boton"
+        type="button"
+        (click)="sumar()"
+        [disabled]="cargando()">
+        Se enojó Gino
+      </button>
+    </div>
+
+    @if (cargando()) {
+    <p class="estado">Cargando...</p>
+    }
+
+    @if (error()) {
+    <p class="error">{{ error() }}</p>
+    }
+  </section>
+</main>
+
+@if (mostrarAviso()) {
+<div class="modal-overlay" (click)="cerrarAviso()">
+  <section
+    class="modal"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="aviso-titulo"
+    (click)="$event.stopPropagation()">
+
+    <h2 id="aviso-titulo" class="modal-titulo">Antes de empezar</h2>
+
+    <p class="modal-texto">
+      Presionar el botón sabiamente, cada toque va a sumar un enojo de gino, usar con moderación
+    </p>
+
+    <label class="modal-check">
+      <input
+        #noVolver
+        type="checkbox"
+        [checked]="noVolverAMostrar()"
+        (change)="noVolverAMostrar.set(noVolver.checked)" />
+      <span>No volver a mostrar</span>
+    </label>
+
+    <button class="modal-boton" type="button" (click)="cerrarAviso()">
+      Entendido
+    </button>
+  </section>
+</div>
+}

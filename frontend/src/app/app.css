@@ -1,0 +1,224 @@
+:host {
+  display: block;
+  min-height: 100dvh;
+  color: #fff;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background:
+    radial-gradient(circle at 50% 0%, #3a1668 0%, transparent 55%),
+    #090617;
+}
+
+.pantalla {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.subtitulo {
+  margin: 0;
+  font-size: clamp(1rem, 3vw, 1.35rem);
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #b9a7ff;
+}
+
+.contador {
+  margin: 8px 0 0;
+  font-size: clamp(6rem, 26vw, 13rem);
+  font-weight: 800;
+  line-height: 0.9;
+  letter-spacing: -0.05em;
+  text-shadow: 0 0 60px rgba(255, 77, 77, 0.45);
+}
+
+.veces {
+  margin: 4px 0 0;
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  color: #cfc4ff;
+}
+
+/* Base o carcasa gris del botón (simulando la base cilíndrica inferior) */
+.boton-wrapper {
+  margin-top: 35px;
+  position: relative;
+  display: inline-block;
+  width: clamp(190px, 42vw, 250px);
+  height: clamp(190px, 42vw, 250px);
+  padding: 8px 14px 20px; /* 8 arriba / 20 abajo: sube el rojo 6px */
+  box-sizing: border-box;
+  background: linear-gradient(145deg, #444851, #272a30);
+  border-radius: 50%;
+  box-shadow:
+    0 20px 35px rgba(0, 0, 0, 0.5),
+    inset 0 3px 6px rgba(255, 255, 255, 0.15),
+    inset 0 -6px 12px rgba(0, 0, 0, 0.6);
+  border: 3px solid #1a1c22;
+}
+
+/* El botón rojo con aspecto de domo 3D */
+.boton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 24px;
+  box-sizing: border-box;
+  border: 3px solid #750512;
+  border-radius: 50%;
+  font: inherit;
+  font-size: clamp(1.1rem, 3vw, 1.45rem);
+  font-weight: 800;
+  color: #fff;
+  text-align: center;
+  line-height: 1.15;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+  background: radial-gradient(circle at 50% 25%, #ff6b6b 0%, #e60012 45%, #99000d 100%);
+  box-shadow:
+    inset 0 10px 14px rgba(255, 255, 255, 0.35),
+    inset 0 -10px 15px rgba(0, 0, 0, 0.5),
+    0 10px 0 #750512,
+    0 15px 20px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 80ms ease, box-shadow 80ms ease, filter 80ms ease;
+}
+
+.boton:hover {
+  filter: brightness(1.08);
+}
+
+/* Efecto de presionar el botón hacia abajo mecánicamente */
+.boton:active {
+  transform: translateY(8px); /* Se hunde dentro de la carcasa */
+  box-shadow:
+    inset 0 6px 10px rgba(255, 255, 255, 0.25),
+    inset 0 -4px 8px rgba(0, 0, 0, 0.6),
+    0 2px 0 #750512, /* El grosor se reduce al presionarlo */
+    0 5px 8px rgba(0, 0, 0, 0.3);
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  transform: translateY(8px);
+}
+
+.estado {
+  margin-top: 16px;
+  color: #c9b8ff;
+}
+
+.error {
+  margin-top: 16px;
+  color: #ffb3b3;
+}
+
+/* Modal de aviso inicial */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: rgba(5, 3, 12, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  animation: modal-fondo 180ms ease-out;
+}
+
+.modal {
+  width: min(100%, 430px);
+  padding: 32px 28px;
+  box-sizing: border-box;
+  border: 1px solid rgba(185, 167, 255, 0.25);
+  border-radius: 24px;
+  background: linear-gradient(160deg, #241244 0%, #140a2b 100%);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  animation: modal-entrada 220ms ease-out;
+}
+
+.modal-titulo {
+  margin: 0 0 12px;
+  font-size: 1.35rem;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.modal-texto {
+  margin: 0 0 24px;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #d7ccff;
+}
+
+.modal-check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 24px;
+  font-size: 0.95rem;
+  color: #c9b8ff;
+  cursor: pointer;
+  user-select: none;
+}
+
+.modal-check input {
+  width: 18px;
+  height: 18px;
+  accent-color: #d81b60;
+  cursor: pointer;
+}
+
+.modal-boton {
+  padding: 14px 36px;
+  border: none;
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 700;
+  color: #fff;
+  background: linear-gradient(135deg, #ff4d4d 0%, #d81b60 100%);
+  box-shadow: 0 12px 30px rgba(216, 27, 96, 0.35);
+  cursor: pointer;
+  transition: transform 120ms ease, filter 120ms ease;
+}
+
+.modal-boton:hover {
+  filter: brightness(1.08);
+}
+
+.modal-boton:active {
+  transform: scale(0.96);
+}
+
+@keyframes modal-fondo {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes modal-entrada {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
