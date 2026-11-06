@@ -129,6 +129,36 @@
   color: #ffb3b3;
 }
 
+.reintentar {
+  margin-top: 12px;
+  padding: 10px 24px;
+  border: 1px solid rgba(201, 184, 255, 0.4);
+  border-radius: 999px;
+  font: inherit;
+  font-weight: 600;
+  color: #e7ddff;
+  background: rgba(185, 167, 255, 0.12);
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 120ms ease, transform 120ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .reintentar:hover {
+    background: rgba(185, 167, 255, 0.24);
+  }
+}
+
+.reintentar:active {
+  transform: scale(0.96);
+}
+
+.reintentar:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
 /* Modal de aviso inicial */
 .modal-overlay {
   position: fixed;

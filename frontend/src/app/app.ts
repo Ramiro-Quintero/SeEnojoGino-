@@ -1,8 +1,11 @@
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { finalize, retry, timer } from 'rxjs';
 import { ContadorService } from './services/contador.service';
 
 const CLAVE_AVISO = 'gino-aviso-inicial-oculto';
 const DURACION_PRESION = 120;
+const REINTENTOS_CARGA = 4;
+const ESPERA_MAXIMA_REINTENTO = 5000;
 
 @Component({
   selector: 'app-root',
@@ -16,6 +19,7 @@ export class App implements OnInit, OnDestroy {
 
   protected readonly total = signal(0);
   protected readonly cargando = signal(true);
+  protected readonly reintentando = signal(false);
   protected readonly error = signal<string | null>(null);
 
   // Modal de aviso inicial
@@ -26,6 +30,8 @@ export class App implements OnInit, OnDestroy {
   protected readonly presionado = signal(false);
   private pressTimer: ReturnType<typeof setTimeout> | null = null;
   private pressStart = 0;
+
+  private cargandoTotal = false;
 
   ngOnInit(): void {
     this.cargarTotal();
@@ -66,6 +72,11 @@ export class App implements OnInit, OnDestroy {
     }, restante);
   }
 
+  protected reintentar(): void {
+    this.error.set(null);
+    this.cargarTotal();
+  }
+
   protected cerrarAviso(): void {
     if (this.noVolverAMostrar()) {
       try {
@@ -91,6 +102,7 @@ export class App implements OnInit, OnDestroy {
         this.total.update((actual) => Math.max(actual, total));
       },
       error: () => {
+        // No se reintenta el POST para no sumar dos veces si la respuesta se perdió.
         this.error.set('No se pudo guardar el enojo. Revisá la conexión.');
         this.cargarTotal();
       }
@@ -106,16 +118,38 @@ export class App implements OnInit, OnDestroy {
   }
 
   private cargarTotal(): void {
-    this.cargando.set(true);
+    if (this.cargandoTotal) {
+      return;
+    }
 
-    this.contadorService.obtener().subscribe({
+    this.cargandoTotal = true;
+    this.cargando.set(true);
+    this.reintentando.set(false);
+
+    this.contadorService.obtener().pipe(
+      retry({
+        count: REINTENTOS_CARGA,
+        delay: (_error, retryCount) => {
+          this.reintentando.set(true);
+          const espera = Math.min(
+            1000 * 2 ** (retryCount - 1),
+            ESPERA_MAXIMA_REINTENTO
+          );
+          return timer(espera);
+        }
+      }),
+      finalize(() => {
+        this.cargandoTotal = false;
+        this.cargando.set(false);
+        this.reintentando.set(false);
+      })
+    ).subscribe({
       next: ({ total }) => {
         this.total.set(total);
-        this.cargando.set(false);
+        this.error.set(null);
       },
       error: () => {
         this.error.set('No se pudo conectar con el servidor.');
-        this.cargando.set(false);
       }
     });
   }

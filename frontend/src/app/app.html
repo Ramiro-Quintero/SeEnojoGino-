@@ -24,11 +24,14 @@
     </div>
 
     @if (cargando()) {
-    <p class="estado">Cargando...</p>
+    <p class="estado">{{ reintentando() ? 'Reconectando...' : 'Cargando...' }}</p>
     }
 
-    @if (error()) {
+    @if (error() && !cargando()) {
     <p class="error">{{ error() }}</p>
+    <button class="reintentar" type="button" (click)="reintentar()">
+      Reintentar
+    </button>
     }
   </section>
 </main>
