@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 
 export interface ContadorResponse {
   total: number;
@@ -10,7 +11,7 @@ export interface ContadorResponse {
 export class ContadorService {
 
   private readonly http = inject(HttpClient);
-  private readonly apiUrl = 'http://localhost:8080/api/contador';
+  private readonly apiUrl = environment.apiUrl;
 
   obtener(): Observable<ContadorResponse> {
     return this.http.get<ContadorResponse>(this.apiUrl);
