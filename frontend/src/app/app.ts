@@ -1,7 +1,8 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { ContadorService } from './services/contador.service';
 
 const CLAVE_AVISO = 'gino-aviso-inicial-oculto';
+const DURACION_PRESION = 120;
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,7 @@ const CLAVE_AVISO = 'gino-aviso-inicial-oculto';
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App implements OnInit {
+export class App implements OnInit, OnDestroy {
 
   private readonly contadorService = inject(ContadorService);
 
@@ -21,9 +22,48 @@ export class App implements OnInit {
   protected readonly mostrarAviso = signal(false);
   protected readonly noVolverAMostrar = signal(false);
 
+  // Animación de presión en mobile
+  protected readonly presionado = signal(false);
+  private pressTimer: ReturnType<typeof setTimeout> | null = null;
+  private pressStart = 0;
+
   ngOnInit(): void {
     this.cargarTotal();
     this.mostrarAviso.set(!this.avisoOculto());
+  }
+
+  ngOnDestroy(): void {
+    if (this.pressTimer) {
+      clearTimeout(this.pressTimer);
+    }
+  }
+
+  protected alPresionar(): void {
+    if (this.cargando()) {
+      return;
+    }
+
+    if (this.pressTimer) {
+      clearTimeout(this.pressTimer);
+      this.pressTimer = null;
+    }
+
+    this.pressStart = Date.now();
+    this.presionado.set(true);
+  }
+
+  protected alSoltar(): void {
+    if (!this.presionado()) {
+      return;
+    }
+
+    const transcurrido = Date.now() - this.pressStart;
+    const restante = Math.max(0, DURACION_PRESION - transcurrido);
+
+    this.pressTimer = setTimeout(() => {
+      this.presionado.set(false);
+      this.pressTimer = null;
+    }, restante);
   }
 
   protected cerrarAviso(): void {

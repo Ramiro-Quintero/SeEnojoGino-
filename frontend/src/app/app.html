@@ -11,7 +11,12 @@
     <div class="boton-wrapper">
       <button
         class="boton"
+        [class.presionado]="presionado()"
         type="button"
+        (pointerdown)="alPresionar()"
+        (pointerup)="alSoltar()"
+        (pointercancel)="alSoltar()"
+        (pointerleave)="alSoltar()"
         (click)="sumar()"
         [disabled]="cargando()">
         Se enojó Gino
