@@ -24,7 +24,10 @@
     </div>
 
     @if (cargando()) {
-    <p class="estado">{{ reintentando() ? 'Reconectando...' : 'Cargando...' }}</p>
+    <p class="estado">{{ mensajeCarga() }}</p>
+    @if (mostrarAyudaCarga()) {
+    <p class="estado-detalle">La primera vez puede tardar hasta 2 minutos.</p>
+    }
     }
 
     @if (error() && !cargando()) {

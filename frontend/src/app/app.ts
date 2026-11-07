@@ -1,11 +1,24 @@
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
-import { finalize, retry, timer } from 'rxjs';
-import { ContadorService } from './services/contador.service';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  Observable,
+  Subscription,
+  catchError,
+  finalize,
+  interval,
+  switchMap,
+  throwError,
+  timeout,
+  timer
+} from 'rxjs';
+import { ContadorResponse, ContadorService } from './services/contador.service';
 
 const CLAVE_AVISO = 'gino-aviso-inicial-oculto';
 const DURACION_PRESION = 120;
-const REINTENTOS_CARGA = 4;
-const ESPERA_MAXIMA_REINTENTO = 5000;
+const TIEMPO_MAXIMO_RECONEXION = 180_000;
+const TIMEOUT_PETICION = 15_000;
+const ESPERA_ENTRE_INTENTOS = 4_000;
+const SEGUNDOS_CONECTANDO = 5;
+const SEGUNDOS_DESPERTANDO = 15;
 
 @Component({
   selector: 'app-root',
@@ -19,8 +32,23 @@ export class App implements OnInit, OnDestroy {
 
   protected readonly total = signal(0);
   protected readonly cargando = signal(true);
-  protected readonly reintentando = signal(false);
   protected readonly error = signal<string | null>(null);
+
+  // Mensajes de espera (Render free tarda hasta ~2 minutos en despertar)
+  protected readonly segundosEsperando = signal(0);
+  protected readonly mensajeCarga = computed(() => {
+    const segundos = this.segundosEsperando();
+    if (segundos < SEGUNDOS_CONECTANDO) {
+      return 'Cargando...';
+    }
+    if (segundos < SEGUNDOS_DESPERTANDO) {
+      return 'Conectando con el servidor...';
+    }
+    return `Despertando el servidor... ${segundos}s`;
+  });
+  protected readonly mostrarAyudaCarga = computed(
+    () => this.segundosEsperando() >= SEGUNDOS_DESPERTANDO
+  );
 
   // Modal de aviso inicial
   protected readonly mostrarAviso = signal(false);
@@ -32,6 +60,7 @@ export class App implements OnInit, OnDestroy {
   private pressStart = 0;
 
   private cargandoTotal = false;
+  private temporizadorEspera: Subscription | null = null;
 
   ngOnInit(): void {
     this.cargarTotal();
@@ -41,6 +70,10 @@ export class App implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.pressTimer) {
       clearTimeout(this.pressTimer);
+    }
+    if (this.temporizadorEspera) {
+      this.temporizadorEspera.unsubscribe();
+      this.temporizadorEspera = null;
     }
   }
 
@@ -124,33 +157,50 @@ export class App implements OnInit, OnDestroy {
 
     this.cargandoTotal = true;
     this.cargando.set(true);
-    this.reintentando.set(false);
+    this.error.set(null);
+    this.segundosEsperando.set(0);
 
-    this.contadorService.obtener().pipe(
-      retry({
-        count: REINTENTOS_CARGA,
-        delay: (_error, retryCount) => {
-          this.reintentando.set(true);
-          const espera = Math.min(
-            1000 * 2 ** (retryCount - 1),
-            ESPERA_MAXIMA_REINTENTO
-          );
-          return timer(espera);
-        }
-      }),
-      finalize(() => {
-        this.cargandoTotal = false;
-        this.cargando.set(false);
-        this.reintentando.set(false);
-      })
-    ).subscribe({
-      next: ({ total }) => {
-        this.total.set(total);
-        this.error.set(null);
-      },
-      error: () => {
-        this.error.set('No se pudo conectar con el servidor.');
-      }
+    this.temporizadorEspera?.unsubscribe();
+    this.temporizadorEspera = interval(1000).subscribe(() => {
+      this.segundosEsperando.update((segundos) => segundos + 1);
     });
+
+    const inicio = Date.now();
+
+    // Reintenta hasta que el backend responda o se cumpla la ventana máxima.
+    const intentar = (numero: number): Observable<ContadorResponse> =>
+      this.contadorService.obtener().pipe(
+        timeout(TIMEOUT_PETICION),
+        catchError((fallo) => {
+          if (Date.now() - inicio >= TIEMPO_MAXIMO_RECONEXION) {
+            return throwError(() => fallo);
+          }
+
+          return timer(ESPERA_ENTRE_INTENTOS).pipe(
+            switchMap(() => intentar(numero + 1))
+          );
+        })
+      );
+
+    intentar(1)
+      .pipe(
+        finalize(() => {
+          this.cargandoTotal = false;
+          this.cargando.set(false);
+          this.temporizadorEspera?.unsubscribe();
+          this.temporizadorEspera = null;
+        })
+      )
+      .subscribe({
+        next: ({ total }) => {
+          this.total.set(total);
+          this.error.set(null);
+        },
+        error: () => {
+          this.error.set(
+            'No se pudo conectar con el servidor. Revisá tu conexión e intentá de nuevo.'
+          );
+        }
+      });
   }
 }

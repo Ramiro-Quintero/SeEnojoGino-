@@ -124,6 +124,12 @@
   color: #c9b8ff;
 }
 
+.estado-detalle {
+  margin: 6px 0 0;
+  font-size: 0.85rem;
+  color: #9d8ccc;
+}
+
 .error {
   margin-top: 16px;
   color: #ffb3b3;
